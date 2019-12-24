@@ -14,7 +14,7 @@ import pdb
 import time
 
 class _RPN_FPN(nn.Module):
-    """ region proposal network """
+    """ region proposal network network head"""
     def __init__(self, din):
         super(_RPN_FPN, self).__init__()
 
@@ -40,7 +40,7 @@ class _RPN_FPN(nn.Module):
         self.RPN_proposal = _ProposalLayer_FPN(self.feat_stride, self.anchor_scales, self.anchor_ratios)
 
         # define anchor target layer
-        self.RPN_anchor_target = _AnchorTargetLayer_FPN(self.feat_stride, self.anchor_scales, self.anchor_ratios)
+        self.RPN_anchor_target = _AnchorTargetLayer_FPN(self.feat_stride, self.anchor_scales, self.anchor_ratios) #给anchor打标签(背景前景，回归偏移值)。
 
         self.rpn_loss_cls = 0
         self.rpn_loss_box = 0
@@ -58,7 +58,7 @@ class _RPN_FPN(nn.Module):
 
     def forward(self, rpn_feature_maps, im_info, gt_boxes, num_boxes):        
 
-
+        #rpn_feature_maps=[p2,p3,p4,p5,p6]
         n_feat_maps = len(rpn_feature_maps)
 
         rpn_cls_scores = []
@@ -66,12 +66,13 @@ class _RPN_FPN(nn.Module):
         rpn_bbox_preds = []
         rpn_shapes = []
 
+        #总共5张特征图，
         for i in range(n_feat_maps):
-            feat_map = rpn_feature_maps[i]
+            feat_map = rpn_feature_maps[i] #取出一张特征图
             batch_size = feat_map.size(0)
             
             # return feature map after convrelu layer
-            rpn_conv1 = F.relu(self.RPN_Conv(feat_map), inplace=True)
+            rpn_conv1 = F.relu(self.RPN_Conv(feat_map), inplace=True) #做3X3的卷积。
             # get rpn classification score
             rpn_cls_score = self.RPN_cls_score(rpn_conv1)
 
@@ -96,8 +97,8 @@ class _RPN_FPN(nn.Module):
         # proposal layer
         cfg_key = 'TRAIN' if self.training else 'TEST'
 
-        rois = self.RPN_proposal((rpn_cls_prob_alls.data, rpn_bbox_pred_alls.data,
-                                 im_info, cfg_key, rpn_shapes))
+        rois = self.RPN_proposal((rpn_cls_prob_alls.data, rpn_bbox_pred_alls.data, #利用rpn_cls_prob与rpn_bbox_pred进行回归操作得到region proposal
+                                 im_info, cfg_key, rpn_shapes))#此种写法相当于调用forward方法。
 
         self.rpn_loss_cls = 0
         self.rpn_loss_box = 0

@@ -17,6 +17,7 @@ from model.rpn.proposal_target_layer import _ProposalTargetLayer
 from model.utils.net_utils import _smooth_l1_loss, _crop_pool_layer, _affine_grid_gen, _affine_theta
 import time
 import pdb
+from model.fpn.resnet import resnet
 
 class _FPN(nn.Module):
     """ FPN """
@@ -32,7 +33,7 @@ class _FPN(nn.Module):
         self.maxpool2d = nn.MaxPool2d(1, stride=2)
         # define rpn
         self.RCNN_rpn = _RPN_FPN(self.dout_base_model)
-        self.RCNN_proposal_target = _ProposalTargetLayer(self.n_classes)
+        self.RCNN_proposal_target = _ProposalTargetLayer(self.n_classes) #给RPN提出的region proposal打标签作为Faste-Rcnn的训练样本。
 
         # NOTE: the original paper used pool_size = 7 for cls branch, and 14 for mask branch, to save the
         # computation time, we first use 14 as the pool_size, and then do stride=2 pooling for cls branch.
@@ -171,7 +172,7 @@ class _FPN(nn.Module):
         c4 = self.RCNN_layer3(c3)
         c5 = self.RCNN_layer4(c4)
         # Top-down
-        p5 = self.RCNN_toplayer(c5)
+        p5 = self.RCNN_toplayer(c5) #1X1的卷积得到M5特征。
         p4 = self._upsample_add(p5, self.RCNN_latlayer1(c4))
         p4 = self.RCNN_smooth1(p4)
         p3 = self._upsample_add(p4, self.RCNN_latlayer2(c3))
@@ -180,6 +181,7 @@ class _FPN(nn.Module):
         p2 = self.RCNN_smooth3(p2)
 
         p6 = self.maxpool2d(p5)
+        #到此6张特征图已经全部拿到
 
         rpn_feature_maps = [p2, p3, p4, p5, p6]
         mrcnn_feature_maps = [p2, p3, p4, p5]

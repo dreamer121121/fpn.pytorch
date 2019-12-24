@@ -207,6 +207,7 @@ if __name__ == '__main__':
     print("WARNING: You have a CUDA device, so you should probably run with --cuda")
 
   # train set
+  # 此处处理数据的方式与cascasde-rcnn是一样的！
   # -- Note: Use validation set and disable the flipped to enable faster loading.
   cfg.TRAIN.USE_FLIPPED = True
   cfg.USE_GPU_NMS = args.cuda

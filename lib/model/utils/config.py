@@ -299,7 +299,7 @@ __C.ANCHOR_RATIOS = [0.5,1,2]
 __C.FEAT_STRIDE = [16, ]
 
 # Anchor scales for RPN_FPN
-__C.FPN_ANCHOR_SCALES = [32, 64, 128, 256, 512]
+__C.FPN_ANCHOR_SCALES = [32, 64, 128, 256, 512] #FPN中anchor的尺度有5种故总共有15种anchor，原始Faster_Rcnn中RPN的anchor的尺度是3种总共9种anchor，5层金字塔分别对应5个尺度
 # Feature stride for RPN_FPN
 __C.FPN_FEAT_STRIDES = [4, 8, 16, 32, 64]
 # Anchor stride for RPN_FPN
